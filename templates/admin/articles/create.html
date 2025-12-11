@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发布新文章</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
+</head>
+<body>
+    <h1>发布新文章</h1>
+    <form method="POST" action="{{ url_for('admin.article_create') }}">
+        <div class="form-group">
+            <label for="title">标题</label>
+            <input type="text" name="title" id="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="content">内容</label>
+            <textarea name="content" id="content" rows="10" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">发布</button>
+        <a href="{{ url_for('admin.article_list') }}" class="btn btn-secondary">取消</a>
+    </form>
+</body>
+</html>

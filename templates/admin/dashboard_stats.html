@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台仪表盘 - 销量统计</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">销量统计</h1>
+
+        <div class="charts-row">
+            <div class="chart-item chart-item-left">
+                <h2>每日订单数量与销售额</h2>
+                {% if daily_plot %}
+                    <img src="data:image/png;base64,{{ daily_plot }}" alt="每日销量统计">
+                {% else %}
+                    <p>暂无数据</p>
+                {% endif %}
+            </div>
+
+            <div class="chart-item chart-item-right">
+                <h2>按品类销量分布</h2>
+                {% if category_plot %}
+                    <img src="data:image/png;base64,{{ category_plot }}" alt="按品类销量饼图">
+                {% else %}
+                    <p>暂无数据</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{{ url_for('admin.dashboard') }}" class="btn">返回仪表盘首页</a>
+    </div>
+</body>
+</html>

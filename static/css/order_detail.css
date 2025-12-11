@@ -1,0 +1,66 @@
+/* 订单详情页面样式 */
+
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+}
+
+h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 20px;
+    color: #555;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.order-info, .order-items {
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fafafa;
+}
+
+.order-info p {
+    margin: 6px 0;
+    line-height: 1.5;
+}
+
+.order-items table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-items th, .order-items td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.order-items th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.actions .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.actions .btn:hover {
+    background-color: #0056b3;
+}

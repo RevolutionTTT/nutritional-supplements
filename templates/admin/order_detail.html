@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单详情 - {{ order.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/order_detail.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>订单详情 - #{{ order.id }}</h1>
+
+    <!-- 基本信息 -->
+    <div class="order-info">
+        <h2>基本信息</h2>
+        <p><strong>用户:</strong> {{ order.user.full_name or order.user.username }} (ID: {{ order.user_id }})</p>
+        <p><strong>状态:</strong> {{ order.status }}</p>
+        <p><strong>总金额:</strong> ¥{{ order.total_amount }}</p>
+        <p><strong>创建时间:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <p><strong>收货地址:</strong> {{ order.shipping_address }}</p>
+    </div>
+
+    <!-- 订单商品 -->
+    <div class="order-items">
+        <h2>订单商品</h2>
+        {% if order.order_items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>商品名称</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>¥{{ item.unit_price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>¥{{ "%.2f"|format(item.unit_price * item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>该订单暂无商品。</p>
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('admin.manage_orders') }}" class="btn">返回订单列表</a>
+    </div>
+</div>
+</body>
+</html>

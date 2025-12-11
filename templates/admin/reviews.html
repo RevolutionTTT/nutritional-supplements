@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>评价管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_reviews.css') }}">
+</head>
+<body>
+    <h1>评价管理</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户</th>
+                <th>产品</th>
+                <th>订单ID</th>
+                <th>评分</th>
+                <th>标题</th>
+                <th>内容详情</th>
+                <th>是否验证</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ review.id }}</td>
+                <td>{{ review.user.username }}</td>
+                <td>{{ review.product.name }}</td>
+                <td>{{ review.order_id }}</td>
+                <td>{{ review.rating }}</td>
+                <td>{{ review.title }}</td>
+                <td>
+                    <button class="btn-view"
+                        data-title="{{ review.title }}"
+                        data-content="{{ review.content }}">
+                        查看
+                    </button>
+                </td>
+                <td>{{ '是' if review.is_verified else '否' }}</td>
+                <td>{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <form action="{{ url_for('admin.delete_review', review_id=review.id) }}" method="POST" onsubmit="return confirm('确定删除该评价吗？');">
+                        <button type="submit" class="btn-delete">删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- JS 弹窗逻辑 -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const title = btn.dataset.title;
+                const content = btn.dataset.content;
+                alert(`标题: ${title}\n内容: ${content}`);
+            });
+        });
+    });
+    </script>
+</body>
+</html>

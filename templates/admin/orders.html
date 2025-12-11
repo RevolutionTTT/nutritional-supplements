@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_orders.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>订单管理</h1>
+
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户</th>
+                    <th>总金额</th>
+                    <th>状态</th>
+                    <th>收货地址</th>
+                    <th>创建时间</th>
+                    <th>订单详情</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.user.username }}</td>
+                    <td>{{ order.total_amount }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.shipping_address }}</td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.order_detail', order_id=order.id) }}">
+                            <button type="button">查看</button>
+                        </a>
+                    </td>
+                    <td class="actions">
+                        {% if order.status == 'paid' %}
+                        <form action="{{ url_for('admin.update_order_status', order_id=order.id) }}" method="post">
+                            <input type="hidden" name="status" value="shipped">
+                            <button type="submit">发货</button>
+                        </form>
+                        {% elif order.status == 'refund_requested' %}
+                        <form action="{{ url_for('admin.update_order_status', order_id=order.id) }}" method="post">
+                            <input type="hidden" name="status" value="refunded">
+                            <button type="submit">处理退款</button>
+                        </form>
+                        {% else %}
+                        <span>无操作</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

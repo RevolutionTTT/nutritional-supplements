@@ -1,0 +1,71 @@
+/* static/css/style.css */
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.jumbotron {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.product-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.cart-item {
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.order-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+.status-shipped { background-color: #d4edda; color: #155724; }
+.status-delivered { background-color: #d1e7dd; color: #0f5132; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+
+.admin-sidebar {
+    background-color: #343a40;
+    min-height: calc(100vh - 56px);
+}
+
+.admin-sidebar .nav-link {
+    color: #adb5bd;
+    padding: 0.75rem 1rem;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    color: #fff;
+    background-color: #495057;
+}
+
+.table-actions .btn {
+    margin-right: 0.25rem;
+}

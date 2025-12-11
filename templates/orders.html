@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}我的订单{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>我的订单</h2>
+
+    {% if orders %}
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>订单号</th>
+                <th>总金额</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr data-order-id="{{ order.id }}">
+                <td>{{ order.id }}</td>
+                <td>¥{{ '%.2f' % order.total_amount }}</td>
+                <td>{{ order.status }}</td>
+                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a class="btn btn-info btn-sm" href="{{ url_for('orders.get_order', order_id=order.id) }}">查看</a>
+                    {% if order.status == 'pending' %}
+                        <button class="btn btn-success btn-sm pay-btn" data-order-id="{{ order.id }}">支付</button>
+                        <button class="btn btn-danger btn-sm cancel-btn" data-order-id="{{ order.id }}">取消</button>
+                    {% elif order.status == 'paid' %}
+                        <button class="btn btn-primary btn-sm review-btn" data-order-id="{{ order.id }}" data-items='{{ order.order_items_json|tojson }}'>评论</button>
+                        <button class="btn btn-warning btn-sm refund-btn" data-order-id="{{ order.id }}">申请退款</button>
+                    {% elif order.status == 'shipped' %}
+                        <button class="btn btn-primary btn-sm review-btn" data-order-id="{{ order.id }}" data-items='{{ order.order_items_json|tojson }}'>评论</button>
+                        <button class="btn btn-success btn-sm confirm-btn" data-order-id="{{ order.id }}">确认收货</button>
+                        <button class="btn btn-warning btn-sm refund-btn" data-order-id="{{ order.id }}">申请退款</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>暂无订单</p>
+    {% endif %}
+</div>
+
+<!-- 评论模态框 -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">提交评论</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+            <label>商品</label>
+            <select id="reviewProduct" class="form-select"></select>
+        </div>
+        <div class="mb-2">
+            <label>评分</label>
+            <input type="number" id="reviewRating" class="form-control" min="1" max="5" value="5">
+        </div>
+        <div class="mb-2">
+            <label>标题</label>
+            <input type="text" id="reviewTitle" class="form-control">
+        </div>
+        <div class="mb-2">
+            <label>内容</label>
+            <textarea id="reviewContent" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="submitReview" class="btn btn-primary">提交</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 支付
+    document.querySelectorAll('.pay-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const orderId = btn.dataset.orderId;
+            const resp = await fetch(`/payment/pay/${orderId}`, { method: 'POST', headers: {'Content-Type':'application/json'} });
+            const data = await resp.json();
+            alert(data.message || '支付成功');
+            window.location.reload();
+        });
+    });
+
+    // 取消订单
+    document.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('确定要取消该订单吗？')) return;
+            const orderId = btn.dataset.orderId;
+            const resp = await fetch(`/orders/${orderId}/cancel`, { method: 'POST', headers: {'Content-Type':'application/json'} });
+            const data = await resp.json();
+            alert(data.message || data.error);
+            window.location.reload();
+        });
+    });
+
+    // 确认收货
+    document.querySelectorAll('.confirm-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('确认已收到商品吗？')) return;
+            const orderId = btn.dataset.orderId;
+            const resp = await fetch(`/orders/${orderId}/confirm`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await resp.json();
+            alert(data.message || data.error);
+            window.location.reload();
+        });
+    });
+
+    // 申请退款
+    document.querySelectorAll('.refund-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('确定申请退款吗？')) return;
+            const orderId = btn.dataset.orderId;
+            const resp = await fetch(`/orders/${orderId}/refund`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await resp.json();
+            alert(data.message || data.error);
+            window.location.reload();
+        });
+    });
+
+    // 评论
+    let currentOrderId = null;
+    const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+
+    document.querySelectorAll('.review-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentOrderId = btn.dataset.orderId;
+            const items = JSON.parse(btn.dataset.items);
+            const select = document.getElementById('reviewProduct');
+            select.innerHTML = '';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.product_id;
+                option.textContent = item.product_name;
+                select.appendChild(option);
+            });
+            document.getElementById('reviewRating').value = 5;
+            document.getElementById('reviewTitle').value = '';
+            document.getElementById('reviewContent').value = '';
+            reviewModal.show();
+        });
+    });
+
+    document.getElementById('submitReview').addEventListener('click', async () => {
+        const product_id = document.getElementById('reviewProduct').value;
+        const rating = document.getElementById('reviewRating').value;
+        const title = document.getElementById('reviewTitle').value;
+        const content = document.getElementById('reviewContent').value;
+
+        const resp = await fetch(`/orders/${currentOrderId}/review`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ product_id, rating, title, content })
+        });
+        const data = await resp.json();
+        alert(data.message || data.error);
+        if (data.review_id) reviewModal.hide();
+    });
+});
+</script>
+{% endblock %}

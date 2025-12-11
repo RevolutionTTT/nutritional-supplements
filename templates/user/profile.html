@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>个人中心</h2>
+    <form id="profile-form">
+        <div class="mb-3">
+            <label class="form-label">姓名</label>
+            <input type="text" class="form-control" name="full_name" value="{{ user.full_name or '' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">邮箱</label>
+            <input type="email" class="form-control" name="email" value="{{ user.email }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">电话</label>
+            <input type="text" class="form-control" name="phone" value="{{ user.phone or '' }}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">地址</label>
+            <textarea class="form-control" name="address">{{ user.address or '' }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">新密码（可选）</label>
+            <input type="password" class="form-control" name="new_password">
+        </div>
+        <button type="submit" class="btn btn-primary">保存修改</button>
+    </form>
+
+    <!-- 提示框 -->
+    <div id="alert-box" class="alert mt-3 d-none" role="alert"></div>
+</div>
+
+<script>
+const form = document.getElementById('profile-form');
+const alertBox = document.getElementById('alert-box');
+
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    fetch('{{ url_for("user.update_profile") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) return response.json().then(err => { throw err; });
+        return response.json();
+    })
+    .then(res => {
+        alertBox.textContent = res.message;
+        alertBox.className = 'alert alert-success mt-3';
+        alertBox.classList.remove('d-none');
+    })
+    .catch(err => {
+        alertBox.textContent = err.message || '更新失败';
+        alertBox.className = 'alert alert-danger mt-3';
+        alertBox.classList.remove('d-none');
+    });
+});
+</script>
+{% endblock %}

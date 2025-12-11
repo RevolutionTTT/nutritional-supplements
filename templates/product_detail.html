@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/product_detail.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="product-detail">
+        <div class="product-image">
+            {% if product.image_url %}
+                <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/default_product.png') }}" alt="{{ product.name }}">
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <h1 class="product-name">{{ product.name }}</h1>
+            <p class="product-price">价格: ￥{{ '%.2f' | format(product.price) }}</p>
+            <p class="product-stock">
+                {% if product.stock_quantity > 0 %}
+                    库存: {{ product.stock_quantity }} 件
+                {% else %}
+                    已售罄
+                {% endif %}
+            </p>
+            <p class="product-description">{{ product.description }}</p>
+
+            {% if product.stock_quantity > 0 %}
+            <form id="add-to-cart-form" action="{{ url_for('cart.add_to_cart') }}" method="POST">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <label for="quantity">数量:</label>
+                <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock_quantity }}">
+                <button type="submit" class="add-to-cart-btn">加入购物车</button>
+            </form>
+            {% else %}
+            <button type="button" class="add-to-cart-btn disabled" disabled>已售罄</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 评论区 -->
+    <div class="product-reviews mt-4">
+        <h3>用户评论</h3>
+        <ul class="reviews-list" id="reviews-list"></ul>
+        <button id="load-more" class="load-more-btn">加载更多评论</button>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const form = document.getElementById('add-to-cart-form');
+if(form){
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            showToast(result.message || result.error || "操作成功");
+        } catch(err) {
+            showToast("添加购物车失败，请刷新重试");
+        }
+    });
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+}
+
+// 评论分页加载
+let page = 1;
+const productId = {{ product.id }};
+const reviewsList = document.getElementById('reviews-list');
+const loadMoreBtn = document.getElementById('load-more');
+
+async function loadReviews() {
+    try {
+
+        const res = await fetch(`/api/reviews/products/${productId}/reviews?page=${page}&per_page=2`);
+
+        const data = await res.json();
+        if(data.reviews.length === 0){
+            loadMoreBtn.style.display = 'none';
+            if(page === 1){
+                reviewsList.innerHTML = '<p>暂无评论，快来抢沙发！</p>';
+            }
+            return;
+        }
+        data.reviews.forEach(r => {
+            const li = document.createElement('li');
+            li.className = 'review-item';
+            li.innerHTML = `
+                <div class="review-header">
+                    <span class="review-user">${r.user_name}</span>
+                    <span class="review-date">${r.created_at.slice(0,10)}</span>
+                </div>
+                <div class="review-rating">
+                    ${[1,2,3,4,5].map(i => `<span class="star ${i<=r.rating?'':'inactive'}">&#9733;</span>`).join('')}
+                </div>
+                <div class="review-title">${r.title}</div>
+                <p class="review-content">${r.content}</p>
+            `;
+            reviewsList.appendChild(li);
+        });
+        page += 1;
+    } catch(err) {
+        console.error(err);
+        showToast('加载评论失败');
+    }
+}
+
+
+loadMoreBtn.addEventListener('click', loadReviews);
+
+// 首次加载
+loadReviews();
+</script>
+</body>
+</html>

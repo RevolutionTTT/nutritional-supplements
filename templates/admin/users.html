@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>后台用户管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    <h1>用户管理</h1>
+
+    <!-- 添加用户表单 -->
+    <h3>添加用户</h3>
+    <form method="post" action="{{ url_for('admin.manage_users') }}">
+        <input type="hidden" name="action" value="add">
+        <div class="form-row">
+            <input type="text" name="username" placeholder="用户名" required>
+            <input type="email" name="email" placeholder="邮箱" required>
+            <input type="password" name="password" placeholder="密码" required>
+            <input type="text" name="full_name" placeholder="全名">
+            <label class="checkbox-label"><input type="checkbox" name="is_admin">管理员</label>
+            <button class="btn btn-primary">添加</button>
+        </div>
+    </form>
+
+    <!-- 用户列表 -->
+    <h3>所有用户</h3>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>全名</th>
+                <th>管理员</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr id="user-row-{{ user.id }}">
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.full_name or '-' }}</td>
+                <td class="checkbox-center">{{ '✔' if user.is_admin else '' }}</td>
+                <td>
+                    {% if not user.is_admin %}
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser({{ user.id }})">删除</button>
+                    {% else %}
+                        <span class="text-muted">管理员</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+<script>
+// 删除用户函数，AJAX
+function deleteUser(userId) {
+    if (!confirm('确定删除该用户吗？此操作不可恢复！')) return;
+
+    fetch(`/admin/users/delete/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            const row = document.getElementById(`user-row-${userId}`);
+            if (row) row.remove();
+        } else {
+            alert('删除失败: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('请求出错，请查看控制台');
+    });
+}
+</script>
+</body>
+</html>

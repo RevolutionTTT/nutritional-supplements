@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}购物车{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>我的购物车</h2>
+    {% if cart_items %}
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>商品</th>
+                <th>价格</th>
+                <th>数量</th>
+                <th>小计</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr data-item-id="{{ item.id }}" data-product-id="{{ item.product_id }}">
+                <td>{{ item.product_name }}<br>
+                    {% if item.product_image %}
+                    <img src="{{ url_for('static', filename=item.product_image) }}" style="width:80px;height:80px;">
+                    {% endif %}
+                </td>
+                <td>{{ '%.2f' % item.product_price }}</td>
+                <td><input type="number" class="form-control quantity-input" value="{{ item.quantity }}" min="1"></td>
+                <td class="subtotal">{{ '%.2f' % item.subtotal }}</td>
+                <td><button class="btn btn-danger btn-sm remove-item">删除</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-end mt-3">
+        <h4 class="me-3">总金额: ¥<span id="total-amount">{{ '%.2f' % total_amount }}</span></h4>
+        <form id="checkout-form" action="{{ url_for('cart.checkout') }}" method="post">
+            <button type="submit" class="btn btn-success btn-lg">去结算</button>
+        </form>
+    </div>
+    {% else %}
+    <p>购物车为空。</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 删除商品
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const tr = btn.closest('tr');
+            const itemId = tr.dataset.itemId;
+            const resp = await fetch(`/cart/remove/${itemId}`, { method: 'POST', headers: {'Content-Type':'application/json'} });
+            const data = await resp.json();
+            if (!resp.ok) { alert(data.error || '删除失败'); return; }
+            tr.remove(); updateTotal();
+        });
+    });
+
+    // 修改数量
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', async () => {
+            const tr = input.closest('tr');
+            const productId = tr.dataset.productId;
+            let quantity = parseInt(input.value); if(quantity<1) quantity=1;
+            const resp = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({product_id:productId, quantity:quantity})
+            });
+            const data = await resp.json();
+            if (!resp.ok) { alert(data.error || '更新失败'); return; }
+            tr.querySelector('.subtotal').textContent = (quantity * parseFloat(tr.querySelector('td:nth-child(2)').textContent)).toFixed(2);
+            updateTotal();
+        });
+    });
+
+    function updateTotal(){
+        let total = 0;
+        document.querySelectorAll('tr[data-item-id]').forEach(tr=>{
+            total += parseFloat(tr.querySelector('.subtotal').textContent);
+        });
+        document.getElementById('total-amount').textContent = total.toFixed(2);
+    }
+});
+</script>
+{% endblock %}

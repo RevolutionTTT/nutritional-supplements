@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>订单详情 - #{{ order.id }}</h2>
+
+    <p>
+        <strong>状态：</strong> {{ order.status }}<br>
+        <strong>总金额：</strong> ¥{{ '%.2f' % order.total_amount }}<br>
+        <strong>收货地址：</strong> {{ order.shipping_address }}<br>
+        <strong>创建时间：</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+
+    <h4 class="mt-4">商品列表</h4>
+    <table class="table table-bordered mt-2">
+        <thead>
+            <tr>
+                <th>商品名称</th>
+                <th>单价</th>
+                <th>数量</th>
+                <th>小计</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.order_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>¥{{ '%.2f' % item.unit_price }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>¥{{ '%.2f' % (item.unit_price * item.quantity) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

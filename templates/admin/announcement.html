@@ -1,0 +1,33 @@
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>发布/更新公告</h2>
+
+    <form method="post">
+        <div class="form-group">
+            <label>标题</label>
+            <input type="text" name="title" class="form-control" value="{{ announcement.title if announcement else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>内容</label>
+            <textarea name="content" class="form-control" rows="6" required>{{ announcement.content if announcement else '' }}</textarea>
+        </div>
+
+        <button type="submit">{{ '更新公告' if announcement else '发布公告' }}</button>
+    </form>
+
+    {% if announcement %}
+    <hr>
+    <h4>当前公告</h4>
+    <div class="announcement-card">
+        <h5>{{ announcement.title }}</h5>
+        <p>{{ announcement.content }}</p>
+        <small>发布时间：{{ announcement.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

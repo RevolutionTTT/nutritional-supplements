@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>营养百科文章列表</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/articles.css') }}">
+</head>
+<body>
+    <h1>营养百科文章列表</h1>
+    <a href="{{ url_for('admin.article_create') }}" class="btn btn-primary">发布新文章</a>
+
+    <table class="article-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>标题</th>
+                <th>发布时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in articles %}
+            <tr>
+                <td>{{ a.id }}</td>
+                <td>
+                    <a href="{{ url_for('admin.article_detail', article_id=a.id) }}">{{ a.title }}</a>
+                </td>
+                <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('admin.article_edit', article_id=a.id) }}" class="btn btn-warning">编辑</a>
+                    <form method="POST" action="{{ url_for('admin.article_delete', article_id=a.id) }}" style="display:inline;">
+                        <button class="btn btn-danger" onclick="return confirm('确认删除？');">删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

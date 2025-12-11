@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品管理</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_products.css') }}">
+</head>
+<body>
+    <h1>产品管理</h1>
+
+    <!-- 新建产品表单 -->
+    <form action="{{ url_for('admin.create_product') }}" method="post" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="产品名称" required>
+        <textarea name="description" placeholder="产品描述"></textarea>
+        <select name="category_id" required>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="price" placeholder="价格" step="0.01" required>
+        <input type="number" name="stock_quantity" placeholder="库存" required>
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">添加产品</button>
+    </form>
+
+    <!-- 产品列表 -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>图片</th>
+                <th>名称</th>
+                <th>描述</th>
+                <th>分类</th>
+                <th>价格</th>
+                <th>库存</th>
+                <th>是否上架</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <form action="{{ url_for('admin.update_product', product_id=product.id) }}" method="post" enctype="multipart/form-data">
+                    <td>{{ product.id }}</td>
+                    <td>
+                        {% if product.image_url %}
+                        <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" width="80">
+                        {% endif %}
+                        <input type="file" name="image" accept="image/*">
+                    </td>
+                    <td><input type="text" name="name" value="{{ product.name }}"></td>
+                    <td><textarea name="description">{{ product.description }}</textarea></td>
+                    <td>
+                        <select name="category_id">
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category.id == product.category_id %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" name="price" value="{{ product.price }}" step="0.01"></td>
+                    <td><input type="number" name="stock_quantity" value="{{ product.stock_quantity }}"></td>
+                    <td>
+                        <select name="is_active">
+                            <option value="1" {% if product.is_active %}selected{% endif %}>是</option>
+                            <option value="0" {% if not product.is_active %}selected{% endif %}>否</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit">更新</button>
+                        <button type="button" onclick="deleteProduct({{ product.id }})">删除</button>
+                    </td>
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function deleteProduct(id) {
+            if (!confirm('确定删除该产品吗？')) return;
+            fetch(`/admin/products/${id}/delete`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) location.reload();
+                });
+        }
+    </script>
+</body>
+</html>

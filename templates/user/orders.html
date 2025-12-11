@@ -1,0 +1,108 @@
+<!--templates/user/orders.html -->
+{% extends "base.html" %}
+
+{% block title %}我的订单 - 营养补充剂销售系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>我的订单</h2>
+
+    <div class="btn-group">
+        <a href="{{ url_for('user.user_orders', status='all') }}"
+           class="btn btn-outline-primary {% if status == 'all' %}active{% endif %}">全部</a>
+        <a href="{{ url_for('user.user_orders', status='pending') }}"
+           class="btn btn-outline-primary {% if status == 'pending' %}active{% endif %}">待付款</a>
+        <a href="{{ url_for('user.user_orders', status='confirmed') }}"
+           class="btn btn-outline-primary {% if status == 'confirmed' %}active{% endif %}">已确认</a>
+        <a href="{{ url_for('user.user_orders', status='shipped') }}"
+           class="btn btn-outline-primary {% if status == 'shipped' %}active{% endif %}">已发货</a>
+        <a href="{{ url_for('user.user_orders', status='delivered') }}"
+           class="btn btn-outline-primary {% if status == 'delivered' %}active{% endif %}">已完成</a>
+    </div>
+</div>
+
+{% if orders.items %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>订单号</th>
+                <th>下单时间</th>
+                <th>商品数量</th>
+                <th>订单金额</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders.items %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ order.order_items|length }} 件商品</td>
+                <td>¥{{ "%.2f"|format(order.total_amount) }}</td>
+                <td>
+                    <span class="order-status status-{{ order.status }}">
+                        {% if order.status == 'pending' %}待付款
+                        {% elif order.status == 'confirmed' %}已确认
+                        {% elif order.status == 'shipped' %}已发货
+                        {% elif order.status == 'delivered' %}已完成
+                        {% elif order.status == 'cancelled' %}已取消
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('orders.get_order', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">
+                        查看详情
+                    </a>
+                    {% if order.status == 'pending' %}
+                    <a href="{{ url_for('payment.create_payment_ui', order_id=order.id) }}" class="btn btn-sm btn-success">
+                        立即支付
+                    </a>
+                    <form action="{{ url_for('orders.cancel_order', order_id=order.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定取消订单？')">
+                            取消订单
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 分页 -->
+{% if orders.pages > 1 %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if orders.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('user.user_orders', page=orders.prev_num, status=status) }}">上一页</a>
+        </li>
+        {% endif %}
+
+        {% for page_num in orders.iter_pages() %}
+        <li class="page-item {% if page_num == orders.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('user.user_orders', page=page_num, status=status) }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if orders.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('user.user_orders', page=orders.next_num, status=status) }}">下一页</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+    <h4>暂无订单</h4>
+    <p class="text-muted">您还没有任何订单记录</p>
+    <a href="{{ url_for('products.get_products') }}" class="btn btn-primary">去购物</a>
+</div>
+{% endif %}
+{% endblock %}
