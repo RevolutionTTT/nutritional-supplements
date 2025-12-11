@@ -8,5 +8,4 @@ conn = pymysql.connect(
     database="nutrition_supplement_db"
 )
 print("连接成功")
-print("1")
 conn.close()
